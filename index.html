@@ -32,9 +32,9 @@
             </div>
             <h1 class="text-3xl font-800 text-slate-900 tracking-tight tracking-tighter uppercase italic">OTP FC LIVE</h1>
             <div class="flex justify-center gap-3 mt-4">
-                <button id="btn-scoreboard" onclick="switchTab('scoreboard')" class="tab-btn px-5 py-2 rounded-full font-bold bg-slate-800 text-white shadow-md">현황판</button>
-                <button id="btn-teams" onclick="switchTab('teams')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600">선수 관리</button>
-                <button id="btn-records" onclick="switchTab('records')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600">기록실</button>
+                <button id="btn-scoreboard" onclick="switchTab('scoreboard')" class="tab-btn px-5 py-2 rounded-full font-bold bg-slate-800 text-white shadow-md transition-all">현황판</button>
+                <button id="btn-teams" onclick="switchTab('teams')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600 transition-all">선수 관리</button>
+                <button id="btn-records" onclick="switchTab('records')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600 transition-all">기록실</button>
             </div>
         </header>
 
@@ -54,20 +54,28 @@
             </div>
         </div>
 
+        <!-- Tab Contents -->
         <div id="tab-scoreboard" class="tab-content active space-y-6"></div>
-        <div id="tab-teams" class="tab-content space-y-4"><div id="team-manage-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-        <div id="tab-records" class="tab-content"><div class="card p-6"><h3 class="text-xl font-bold mb-4 flex items-center gap-2 italic uppercase">🏆 Ranking</h3><div id="ranking-container" class="space-y-3"></div></div></div>
+        <div id="tab-teams" class="tab-content">
+            <div id="team-manage-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+        <div id="tab-records" class="tab-content">
+            <div class="card p-6">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 italic uppercase">🏆 Ranking</h3>
+                <div id="ranking-container" class="space-y-3"></div>
+            </div>
+        </div>
 
         <div class="mt-8 flex gap-3">
             <button onclick="copyStatus()" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">현황 복사</button>
-            <button onclick="showConfirm('전체 초기화', '데이터가 모두 삭제됩니다. 계속할까요?', resetAllData)" class="px-6 bg-red-100 text-red-700 py-4 rounded-2xl font-bold border border-red-200">초기화</button>
+            <button onclick="showConfirm('전체 초기화', '데이터가 모두 삭제됩니다. 계속할까요?', resetAllData)" class="px-6 bg-red-100 text-red-700 py-4 rounded-2xl font-bold border border-red-200 active:scale-95 transition-transform">초기화</button>
         </div>
     </div>
 
     <!-- Modals -->
-    <div id="scoring-modal" class="modal"><div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div class="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0"><div><span id="modal-match-info" class="text-xs font-bold text-slate-400 uppercase">Match Info</span><h3 id="modal-match-title" class="text-xl font-black italic uppercase tracking-tighter">OB vs YB</h3></div><button onclick="closeModal('scoring-modal')" class="text-2xl">&times;</button></div><div class="p-6 overflow-y-auto"><div class="grid grid-cols-2 gap-4"><div><h4 id="modal-left-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-slate-800 text-sm uppercase italic">Team A</h4><div id="modal-left-players" class="space-y-2"></div></div><div><h4 id="modal-right-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-orange-600 text-sm uppercase italic">Team B</h4><div id="modal-right-players" class="space-y-2"></div></div></div></div><div class="p-4 bg-slate-50 border-t"><button onclick="closeModal('scoring-modal')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">Done</button></div></div></div>
-    <div id="confirm-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center"><h3 id="confirm-title" class="text-lg font-black text-slate-800 mb-2 font-bold italic">Check</h3><p id="confirm-msg" class="text-sm text-slate-600 mb-6"></p><div class="flex gap-2"><button onclick="closeModal('confirm-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">Confirm</button></div></div></div>
-    <div id="edit-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 border-2 border-slate-800"><h3 class="text-lg font-black text-slate-800 mb-4 text-center italic uppercase">Edit Player</h3><div class="space-y-4 mb-6"><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Name</label><input type="text" id="edit-player-name" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Gender</label><select id="edit-player-gender" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold bg-white"><option value="남">남 (0.5pts)</option><option value="여">여 (1.0pts)</option></select></div></div><div class="flex gap-2"><button onclick="closeModal('edit-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="edit-save-btn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold">Save</button></div></div></div>
+    <div id="scoring-modal" class="modal"><div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div class="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0"><div><span id="modal-match-info" class="text-xs font-bold text-slate-400 uppercase">Match Info</span><h3 id="modal-match-title" class="text-xl font-black italic uppercase tracking-tighter">OB vs YB</h3></div><button onclick="closeModal('scoring-modal')" class="text-2xl">&times;</button></div><div class="p-6 overflow-y-auto"><div class="grid grid-cols-2 gap-4"><div><h4 id="modal-left-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-slate-800 text-sm uppercase italic">Team A</h4><div id="modal-left-players" class="space-y-2"></div></div><div><h4 id="modal-right-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-orange-600 text-sm uppercase italic">Team B</h4><div id="modal-right-players" class="space-y-2"></div></div></div></div><div class="p-4 bg-slate-50 border-t"><button onclick="closeModal('scoring-modal')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold active:scale-95 transition-transform">Done</button></div></div></div>
+    <div id="confirm-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl"><h3 id="confirm-title" class="text-lg font-black text-slate-800 mb-2 font-bold italic">Check</h3><p id="confirm-msg" class="text-sm text-slate-600 mb-6"></p><div class="flex gap-2"><button onclick="closeModal('confirm-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">Confirm</button></div></div></div>
+    <div id="edit-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 border-2 border-slate-800 shadow-2xl"><h3 class="text-lg font-black text-slate-800 mb-4 text-center italic uppercase">Edit Player</h3><div class="space-y-4 mb-6"><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Name</label><input type="text" id="edit-player-name" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold focus:border-slate-800"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Gender</label><select id="edit-player-gender" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold bg-white"><option value="남">남 (0.5pts)</option><option value="여">여 (1.0pts)</option></select></div></div><div class="flex gap-2"><button onclick="closeModal('edit-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="edit-save-btn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold active:scale-95 transition-transform">Save</button></div></div></div>
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm shadow-2xl opacity-0 transition-opacity pointer-events-none z-[200]">Status</div>
 
     <script type="module">
@@ -75,7 +83,7 @@
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- Firebase 설정 영역 ---
+        // --- Firebase 설정 ---
         let firebaseConfig = {
             apiKey: "AIzaSyD5mPf2yRgAkrGex3mbdgN4LXBPnjNhdZQ",
             authDomain: "otp-fc-scoreboard.firebaseapp.com",
@@ -89,12 +97,10 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // 프리뷰 환경과 외부 환경 호환을 위한 ID 설정
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'otp-fc-main';
-        // Firestore 경로: artifacts/{appId}/public/data/gameState/current (6 세그먼트)
         const stateDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'gameState', 'current');
 
-        // --- 앱 로직 데이터 ---
+        // --- 경기 데이터 ---
         const matchesRaw = [{q:"1회",a:["OB-1","YB-1"],b:["OB-2","YB-2"]},{q:"2회",a:["OB-1","YB-2"],b:["OB-2","YB-1"]},{q:"3회",a:["OB-2","YB-1"],b:["OB-1","YB-2"]},{q:"4회",a:["OB-2","YB-2"],b:["OB-1","YB-1"]},{q:"5회",a:["OB-1","YB-1"],b:["OB-2","YB-2"]},{q:"6회",a:["OB-1","YB-2"],b:["OB-2","YB-1"]}];
         const flatMatches = []; matchesRaw.forEach((m,i)=>{flatMatches.push({q:m.q,court:'A',teams:m.a,idx:i*2});flatMatches.push({q:m.q,court:'B',teams:m.b,idx:i*2+1});});
 
@@ -104,18 +110,28 @@
         // --- 전역 함수 정의 ---
         window.switchTab = (tab) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-slate-800','text-white','shadow-md'); b.classList.add('bg-white','text-slate-600'); });
+            document.querySelectorAll('.tab-btn').forEach(b => { 
+                b.classList.remove('bg-slate-800','text-white','shadow-md'); 
+                b.classList.add('bg-white','text-slate-600'); 
+            });
             document.getElementById(`tab-${tab}`).classList.add('active');
             const targetBtn = document.getElementById(`btn-${tab}`);
-            targetBtn.classList.replace('bg-white','bg-slate-800'); targetBtn.classList.replace('text-slate-600','text-white'); targetBtn.classList.add('shadow-md');
+            targetBtn.classList.replace('bg-white','bg-slate-800'); 
+            targetBtn.classList.replace('text-slate-600','text-white'); 
+            targetBtn.classList.add('shadow-md');
             renderAll();
         };
 
         window.addPlayer = (teamName) => {
-            const name = document.getElementById(`input-name-${teamName}`).value.trim();
+            const nameInput = document.getElementById(`input-name-${teamName}`);
+            const name = nameInput.value.trim();
             if(!name) return;
-            state.teams[teamName].push({ id: 'p_'+Date.now()+Math.random().toString(36).substr(2,4), name, gender: document.getElementById(`input-gender-${teamName}`).value });
-            document.getElementById(`input-name-${teamName}`).value = ''; pushState();
+            state.teams[teamName].push({ 
+                id: 'p_'+Date.now()+Math.random().toString(36).substr(2,4), 
+                name, 
+                gender: document.getElementById(`input-gender-${teamName}`).value 
+            });
+            nameInput.value = ''; pushState();
         };
 
         window.removePlayer = (teamName, pid) => { state.teams[teamName] = state.teams[teamName].filter(p => p.id !== pid); pushState(); };
@@ -136,51 +152,86 @@
         window.closeModal = (id) => { document.getElementById(id).classList.remove('active'); if (id === 'scoring-modal') currentMatchIdx = null; };
         window.showConfirm = (title, msg, fn) => { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-msg').innerText = msg; document.getElementById('confirm-action-btn').onclick = () => { fn(); window.closeModal('confirm-modal'); }; document.getElementById('confirm-modal').classList.add('active'); };
         window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('opacity-100'); setTimeout(() => t.classList.remove('opacity-100'), 2000); };
-        window.copyStatus = () => { const text = `[OTP FC 이벤트 매치 현황]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간: ${window.location.href}`; const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); window.showToast("복사 완료!"); };
+        window.copyStatus = () => { const text = `[OTP FC 이벤트 매치 현황]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간 확인: ${window.location.href}`; const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); window.showToast("현황판이 복사되었습니다."); };
         window.resetAllData = () => { state = { teams:{"OB-1":[],"OB-2":[],"YB-1":[],"YB-2":[]}, matchScores:Array(12).fill(null).map(()=>({})) }; pushState(); };
 
-        // --- 렌더링 함수 ---
+        // --- 렌더링 로직 ---
         function renderAll() { renderMatchList(); renderTeamManagement(); renderRecords(); if (currentMatchIdx !== null) renderModalPlayers(); }
+        
         function renderTeamManagement() {
             const container = document.getElementById('team-manage-container'); if (!container) return;
-            container.innerHTML = Object.keys(state.teams).map(t => `<div class="card p-5 border border-slate-200"><div class="flex justify-between items-center mb-4"><h3 class="font-black text-xl ${t.startsWith('OB')?'text-slate-900':'text-orange-700'} uppercase italic tracking-tighter">${t}</h3><button onclick="window.showConfirm('${t} 전체 삭제','비울까요?',()=>window.clearTeam('${t}'))" class="text-xs font-bold text-red-600 border border-red-100 px-2 py-1 rounded">Clear</button></div><div class="space-y-2 mb-4">${state.teams[t].length===0?'<p class="text-[10px] text-slate-300 text-center py-6 border-2 border-dashed border-slate-50 rounded-2xl">Empty</p>':''}${state.teams[t].map(p=>`<div class="flex justify-between items-center bg-white p-3 rounded-xl text-sm border-2 border-slate-100 shadow-sm"><span class="font-bold text-slate-800">${p.name} <span class="text-[10px] font-black ${p.gender==='여'?'text-pink-600 border-pink-100':'text-blue-600 border-blue-100'} ml-1 uppercase border px-1 rounded">${p.gender}</span></span><div class="flex gap-2"><button onclick="window.openEditModal('${t}','${p.id}')" class="text-slate-900 font-black text-[11px] underline">Edit</button><button onclick="window.showConfirm('삭제','${p.name}?',()=>window.removePlayer('${t}','${p.id}'))" class="text-red-700 font-black text-[11px] underline">Del</button></div></div>`).join('')}</div><div class="flex gap-2 bg-slate-100 p-2 rounded-2xl"><input type="text" id="input-name-${t}" placeholder="Name" class="flex-1 bg-transparent px-2 text-sm font-bold outline-none"><select id="input-gender-${t}" class="bg-white border rounded px-1 text-xs font-black"><option value="남">M</option><option value="여">W</option></select><button onclick="window.addPlayer('${t}')" class="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">+</button></div></div>`).join('');
+            container.innerHTML = Object.keys(state.teams).map(t => `
+                <div class="card p-4 md:p-5 border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-black text-xl ${t.startsWith('OB')?'text-slate-900':'text-orange-700'} uppercase italic tracking-tighter">${t} 명단</h3>
+                        <button onclick="window.showConfirm('${t} 전체 삭제','이 팀의 명단을 모두 비울까요?',()=>window.clearTeam('${t}'))" class="text-[11px] font-bold text-red-600 border border-red-200 px-2 py-1 rounded bg-red-50 active:bg-red-100 transition-colors">Clear</button>
+                    </div>
+                    <div class="space-y-2 mb-5">
+                        ${state.teams[t].length === 0 ? '<p class="text-xs text-slate-300 text-center py-8 border-2 border-dashed border-slate-50 rounded-2xl">등록된 선수가 없습니다.</p>' : ''}
+                        ${state.teams[t].map(p => `
+                            <div class="flex justify-between items-center bg-white p-3 rounded-xl text-sm border-2 border-slate-100 shadow-sm">
+                                <span class="font-bold text-slate-800 truncate pr-2">
+                                    ${p.name} 
+                                    <span class="text-[10px] font-black ${p.gender==='여'?'text-pink-600 border-pink-100':'text-blue-600 border-blue-100'} ml-1 uppercase border px-1.5 py-0.5 rounded bg-slate-50">${p.gender}</span>
+                                </span>
+                                <div class="flex gap-3 shrink-0">
+                                    <button onclick="window.openEditModal('${t}','${p.id}')" class="text-slate-900 font-black text-xs underline underline-offset-4 decoration-slate-300 active:text-blue-600 transition-colors">Edit</button>
+                                    <button onclick="window.showConfirm('선수 삭제','${p.name} 선수를 삭제할까요?',()=>window.removePlayer('${t}','${p.id}'))" class="text-red-700 font-black text-xs underline underline-offset-4 decoration-red-200 active:text-red-900 transition-colors">Del</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex flex-col gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <div class="flex gap-2">
+                            <input type="text" id="input-name-${t}" placeholder="선수 이름" class="flex-1 bg-white border-2 border-slate-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-slate-800 transition-colors">
+                            <select id="input-gender-${t}" class="bg-white border-2 border-slate-100 rounded-xl px-2 text-xs font-black text-slate-700 outline-none">
+                                <option value="남">남</option>
+                                <option value="여">여</option>
+                            </select>
+                        </div>
+                        <button onclick="window.addPlayer('${t}')" class="bg-slate-900 text-white w-full py-2.5 rounded-xl flex items-center justify-center font-black shadow-lg active:scale-[0.98] transition-transform">선수 추가 +</button>
+                    </div>
+                </div>
+            `).join('');
         }
+
         function renderMatchList() {
             const container = document.getElementById('tab-scoreboard'); if (!container || !container.classList.contains('active')) return;
             container.innerHTML = matchesRaw.map((q, i) => `<div class="card overflow-hidden border-2 border-slate-100"><div class="bg-slate-50 px-5 py-3 border-b-2 border-slate-100 flex justify-between items-center font-black text-slate-900 uppercase italic"><span>${q.q} 매치</span></div><div class="divide-y-2 divide-slate-50">${[flatMatches[i*2], flatMatches[i*2+1]].map(m=>{const s=getScore(m.idx,m.teams[0],m.teams[1]);return `<div class="p-5 hover:bg-slate-50 active:bg-slate-100 cursor-pointer flex items-center justify-between" onclick="window.openMatchModal(${m.idx})"><div class="flex items-center gap-4"><span class="text-xs font-black text-slate-300 italic border-r-2 pr-4 uppercase">C-${m.court}</span><div class="flex flex-col"><div class="flex items-center gap-2"><span class="font-bold text-slate-900">${m.teams[0]}</span><span class="text-[10px] text-slate-200 italic">VS</span><span class="font-bold text-orange-600">${m.teams[1]}</span></div><span class="text-[9px] font-bold text-slate-300 uppercase">${m.court==='A'?'OB':'YB'} Home</span></div></div><div class="font-black text-3xl tracking-tighter text-slate-900">${s.l} : ${s.r}</div></div>`}).join('')}</div></div>`).join('');
             updateTotal();
         }
+
         function getScore(mid, tL, tR) {
             let l=0, r=0; (state.teams[tL]||[]).forEach(p=>l+=(state.matchScores[mid][p.id]||0)*(p.gender==='여'?1:0.5)); (state.teams[tR]||[]).forEach(p=>r+=(state.matchScores[mid][p.id]||0)*(p.gender==='여'?1:0.5));
             return { l: l.toFixed(1), r: r.toFixed(1) };
         }
+
         function updateTotal() {
             let ob=0, yb=0; flatMatches.forEach(m => { const s = getScore(m.idx, m.teams[0], m.teams[1]); if (m.teams[0].startsWith('OB')) ob += parseFloat(s.l); else yb += parseFloat(s.l); if (m.teams[1].startsWith('OB')) ob += parseFloat(s.r); else yb += parseFloat(s.r); });
             document.getElementById('total-ob').innerText = ob.toFixed(1); document.getElementById('total-yb').innerText = yb.toFixed(1);
         }
+
         function renderModalPlayers() {
             const m = flatMatches.find(f => f.idx === currentMatchIdx); if(!m) return;
-            const rl = (t) => (state.teams[t]||[]).length?state.teams[t].map(p=>`<div class="flex justify-between items-center bg-white p-3 rounded-2xl border-2 border-slate-50 shadow-sm"><div class="flex flex-col"><span class="font-bold text-sm text-slate-800">${p.name}</span><span class="text-[9px] font-black ${p.gender==='여'?'text-pink-600':'text-blue-600'} uppercase">x${p.gender==='여'?'1.0':'0.5'}</span></div><div class="flex items-center gap-3"><button onclick="window.goal('${p.id}',-1)" class="w-8 h-8 rounded-full border-2 border-slate-200 text-slate-400 font-black">-</button><span class="font-black text-lg w-5 text-center text-slate-900">${state.matchScores[currentMatchIdx][p.id]||0}</span><button onclick="window.goal('${p.id}',1)" class="w-8 h-8 rounded-full bg-slate-900 text-white font-black active:scale-125 transition-transform shadow-md">+</button></div></div>`).join(''):`<p class="text-[10px] text-slate-300 text-center py-6 italic uppercase">No Players</p>`;
+            const rl = (t) => (state.teams[t]||[]).length?state.teams[t].map(p=>`<div class="flex justify-between items-center bg-white p-3 rounded-2xl border-2 border-slate-50 shadow-sm"><div class="flex flex-col"><span class="font-bold text-sm text-slate-800">${p.name}</span><span class="text-[9px] font-black ${p.gender==='여'?'text-pink-600':'text-blue-600'} uppercase">x${p.gender==='여'?'1.0':'0.5'}</span></div><div class="flex items-center gap-3"><button onclick="window.goal('${p.id}',-1)" class="w-8 h-8 rounded-full border-2 border-slate-200 text-slate-400 font-black active:bg-slate-100">-</button><span class="font-black text-lg w-5 text-center text-slate-900">${state.matchScores[currentMatchIdx][p.id]||0}</span><button onclick="window.goal('${p.id}',1)" class="w-8 h-8 rounded-full bg-slate-900 text-white font-black active:scale-125 transition-transform shadow-md">+</button></div></div>`).join(''):`<p class="text-[10px] text-slate-300 text-center py-6 italic uppercase">No Players</p>`;
             document.getElementById('modal-left-players').innerHTML = rl(m.teams[0]); document.getElementById('modal-right-players').innerHTML = rl(m.teams[1]);
         }
+
         function renderRecords() {
             const stats = {}; Object.keys(state.teams).forEach(t=>state.teams[t].forEach(p=>stats[p.id]={name:p.name,gender:p.gender,team:t,goals:0,pts:0}));
             state.matchScores.forEach(ms=>{for(let pid in ms){if(stats[pid]){stats[pid].goals+=ms[pid]; stats[pid].pts+=ms[pid]*(stats[pid].gender==='여'?1:0.5);}}});
             const srt = Object.values(stats).filter(p=>p.goals>0).sort((a,b)=>b.pts-a.pts||b.goals-a.goals);
             const container = document.getElementById('ranking-container'); if(!container) return; if(!srt.length){container.innerHTML=`<p class="text-center py-16 text-slate-300 font-bold italic uppercase">No Stats</p>`; return;}
-            container.innerHTML = srt.map((p,i)=>`<div class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-50 shadow-sm"><div class="flex items-center gap-4"><span class="text-2xl font-black italic ${i<3?'text-orange-600':'text-slate-200'}">#${i+1}</span><div><p class="font-bold text-slate-900 text-sm">${p.name} <span class="text-[10px] text-slate-400 font-normal uppercase tracking-tighter">(${p.team})</span></p><p class="text-[10px] font-bold text-slate-500 uppercase">${p.gender} | ${p.goals} 골</p></div></div><div class="text-right"><span class="text-2xl font-black text-slate-900 tracking-tighter">${p.pts.toFixed(1)}</span><span class="text-[10px] font-black text-slate-300 ml-0.5 uppercase">PTS</span></div></div>`).join('');
+            container.innerHTML = srt.map((p,i)=>`<div class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-50 shadow-sm hover:shadow-md transition-shadow"><div class="flex items-center gap-4"><span class="text-2xl font-black italic ${i<3?'text-orange-600':'text-slate-200'}">#${i+1}</span><div><p class="font-bold text-slate-900 text-sm">${p.name} <span class="text-[10px] text-slate-400 font-normal uppercase tracking-tighter">(${p.team})</span></p><p class="text-[10px] font-bold text-slate-500 uppercase">${p.gender} | ${p.goals} 골</p></div></div><div class="text-right"><span class="text-2xl font-black text-slate-900 tracking-tighter">${p.pts.toFixed(1)}</span><span class="text-[10px] font-black text-slate-300 ml-0.5 uppercase">PTS</span></div></div>`).join('');
         }
 
-        // --- Firebase 동기화 로직 ---
+        // --- Firebase 동기화 ---
         async function pushState() { if (!user || !stateDocRef) return; try { await setDoc(stateDocRef, state); } catch(e) { console.error("Push Error", e); } }
+        
         function startSync() {
             onSnapshot(stateDocRef, (ds) => { 
-                if (ds.exists()) { 
-                    state = ds.data(); 
-                    renderAll(); 
-                } else { 
-                    setDoc(stateDocRef, state); 
-                } 
+                if (ds.exists()) { state = ds.data(); renderAll(); } 
+                else { setDoc(stateDocRef, state); } 
                 document.getElementById('sync-status').className = 'sync-indicator sync-online'; 
                 document.getElementById('sync-text').innerText = 'Connected'; 
             }, (er) => { 
