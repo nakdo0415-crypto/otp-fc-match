@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP FC: Live Scoreboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+        .modal.active { display: flex; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .sync-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .sync-online { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .sync-offline { background-color: #ef4444; }
+    </style>
+</head>
+<body class="pb-10">
+    <div class="max-w-3xl mx-auto px-4 pt-6">
+        <!-- Header -->
+        <header class="text-center mb-6">
+            <div class="flex justify-center items-center gap-2 mb-1">
+                <span id="sync-status" class="sync-indicator sync-offline"></span>
+                <span id="sync-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Connecting...</span>
+            </div>
+            <h1 class="text-3xl font-800 text-slate-900 tracking-tight tracking-tighter uppercase italic">OTP FC LIVE</h1>
+            <div class="flex justify-center gap-3 mt-4">
+                <button onclick="switchTab('scoreboard')" class="tab-btn px-5 py-2 rounded-full font-bold bg-slate-800 text-white shadow-md" id="btn-scoreboard">현황판</button>
+                <button onclick="switchTab('teams')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600" id="btn-teams">선수 관리</button>
+                <button onclick="switchTab('records')" class="tab-btn px-5 py-2 rounded-full font-bold bg-white text-slate-600" id="btn-records">기록실</button>
+            </div>
+        </header>
+
+        <!-- Main Score Display -->
+        <div class="card p-6 mb-8 text-center border-b-4 border-slate-200">
+            <h2 class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest italic">Total Standings (M: 0.5 / W: 1.0)</h2>
+            <div class="flex justify-around items-center">
+                <div class="flex flex-col flex-1">
+                    <span class="text-lg font-bold text-slate-700">OB 진영</span>
+                    <span id="total-ob" class="text-5xl font-black text-slate-900 tracking-tighter">0.0</span>
+                </div>
+                <div class="text-4xl font-black text-slate-300 mx-4 italic">VS</div>
+                <div class="flex flex-col flex-1">
+                    <span class="text-lg font-bold text-orange-600">YB 진영</span>
+                    <span id="total-yb" class="text-5xl font-black text-orange-600 tracking-tighter">0.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Content -->
+        <div id="tab-scoreboard" class="tab-content active space-y-6"></div>
+        <div id="tab-teams" class="tab-content space-y-4">
+            <div id="team-manage-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+        <div id="tab-records" class="tab-content">
+            <div class="card p-6">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2 italic uppercase">🏆 Ranking</h3>
+                <div id="ranking-container" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-8 flex gap-3">
+            <button onclick="copyStatus()" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">현황 복사</button>
+            <button onclick="showConfirm('전체 초기화', '데이터가 모두 삭제됩니다. 계속할까요?', resetAllData)" class="px-6 bg-red-100 text-red-700 py-4 rounded-2xl font-bold border border-red-200">초기화</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="scoring-modal" class="modal"><div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div class="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0"><div><span id="modal-match-info" class="text-xs font-bold text-slate-400 uppercase">Match Info</span><h3 id="modal-match-title" class="text-xl font-black italic uppercase tracking-tighter">OB vs YB</h3></div><button onclick="closeModal('scoring-modal')" class="text-2xl">&times;</button></div><div class="p-6 overflow-y-auto"><div class="grid grid-cols-2 gap-4"><div><h4 id="modal-left-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-slate-800 text-sm uppercase italic">Team A</h4><div id="modal-left-players" class="space-y-2"></div></div><div><h4 id="modal-right-team-name" class="font-black text-center mb-3 border-b-2 pb-1 text-orange-600 text-sm uppercase italic">Team B</h4><div id="modal-right-players" class="space-y-2"></div></div></div></div><div class="p-4 bg-slate-50 border-t"><button onclick="closeModal('scoring-modal')" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">Done</button></div></div></div>
+    <div id="confirm-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center"><h3 id="confirm-title" class="text-lg font-black text-slate-800 mb-2 font-bold italic">Check</h3><p id="confirm-msg" class="text-sm text-slate-600 mb-6"></p><div class="flex gap-2"><button onclick="closeModal('confirm-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold">Confirm</button></div></div></div>
+    <div id="edit-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 border-2 border-slate-800"><h3 class="text-lg font-black text-slate-800 mb-4 text-center italic uppercase">Edit Player</h3><div class="space-y-4 mb-6"><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Name</label><input type="text" id="edit-player-name" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Gender</label><select id="edit-player-gender" class="w-full border-2 border-slate-200 rounded-xl px-4 py-2 outline-none font-bold bg-white"><option value="남">남 (0.5pts)</option><option value="여">여 (1.0pts)</option></select></div></div><div class="flex gap-2"><button onclick="closeModal('edit-modal')" class="flex-1 py-3 bg-slate-200 text-slate-800 rounded-xl font-bold">Cancel</button><button id="edit-save-btn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold">Save</button></div></div></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm shadow-2xl opacity-0 transition-opacity pointer-events-none z-[200]">Status</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, collection, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'otp-fc-default';
+
+        // State & Static Data
+        const matchesRaw = [
+            { q: "1회", a: ["OB-1", "YB-1"], b: ["OB-2", "YB-2"] },
+            { q: "2회", a: ["OB-1", "YB-2"], b: ["OB-2", "YB-1"] },
+            { q: "3회", a: ["OB-2", "YB-1"], b: ["OB-1", "YB-2"] },
+            { q: "4회", a: ["OB-2", "YB-2"], b: ["OB-1", "YB-1"] },
+            { q: "5회", a: ["OB-1", "YB-1"], b: ["OB-2", "YB-2"] },
+            { q: "6회", a: ["OB-1", "YB-2"], b: ["OB-2", "YB-1"] }
+        ];
+        const flatMatches = [];
+        matchesRaw.forEach((m, i) => {
+            flatMatches.push({ q: m.q, court: 'A', teams: m.a, idx: i * 2 });
+            flatMatches.push({ q: m.q, court: 'B', teams: m.b, idx: i * 2 + 1 });
+        });
+
+        let state = { teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, matchScores: Array(12).fill({}) };
+        let currentMatchIdx = null;
+        let user = null;
+
+        // Path to public shared data
+        const stateDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'gameState', 'current');
+
+        // Init Auth
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.error("Auth failed", e); }
+        };
+        initAuth();
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            if (user) {
+                document.getElementById('sync-status').className = 'sync-indicator sync-online';
+                document.getElementById('sync-text').innerText = 'Connected Live';
+                startSync();
+            }
+        });
+
+        // Sync Data
+        function startSync() {
+            onSnapshot(stateDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    state = docSnap.data();
+                    renderAll();
+                } else {
+                    // Initial setup if doc doesn't exist
+                    setDoc(stateDocRef, state);
+                }
+            }, (error) => {
+                console.error("Sync Error", error);
+                document.getElementById('sync-status').className = 'sync-indicator sync-offline';
+                document.getElementById('sync-text').innerText = 'Sync Error';
+            });
+        }
+
+        async function pushState() {
+            if (!user) return;
+            try { await setDoc(stateDocRef, state); } catch(e) { console.error("Push Error", e); }
+        }
+
+        // Global functions (exposed to window for onclick)
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
+                b.classList.add('bg-white', 'text-slate-600');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            const targetBtn = document.getElementById(`btn-${tab}`);
+            targetBtn.classList.replace('bg-white', 'bg-slate-800');
+            targetBtn.classList.replace('text-slate-600', 'text-white');
+            targetBtn.classList.add('shadow-md');
+            renderAll();
+        };
+
+        function renderAll() {
+            renderMatchList();
+            renderTeamManagement();
+            renderRecords();
+            if (currentMatchIdx !== null) renderModalPlayers();
+        }
+
+        function renderTeamManagement() {
+            const container = document.getElementById('team-manage-container');
+            if (!container) return;
+            container.innerHTML = Object.keys(state.teams).map(teamName => `
+                <div class="card p-5 border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-black text-xl ${teamName.startsWith('OB') ? 'text-slate-900' : 'text-orange-700'} uppercase tracking-tighter italic">${teamName}</h3>
+                        <button onclick="window.showConfirm('${teamName} 전체 삭제', '명단을 비울까요?', () => window.clearTeam('${teamName}'))" class="text-xs font-bold text-red-600 hover:bg-red-50 px-2 py-1 rounded border border-red-100 uppercase tracking-widest">Clear</button>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        ${state.teams[teamName].length === 0 ? '<p class="text-[10px] text-slate-400 text-center py-6 italic border-2 border-dashed border-slate-50 rounded-2xl">Empty Team</p>' : ''}
+                        ${state.teams[teamName].map((p) => `
+                            <div class="flex justify-between items-center bg-white p-3 rounded-xl text-sm border-2 border-slate-100 shadow-sm">
+                                <span class="font-bold text-slate-800">${p.name} <span class="text-[10px] font-black ${p.gender==='여'?'text-pink-600 border-pink-100':'text-blue-600 border-blue-100'} ml-1 uppercase border px-1 rounded">${p.gender}</span></span>
+                                <div class="flex gap-2">
+                                    <button onclick="window.openEditModal('${teamName}', '${p.id}')" class="text-slate-900 font-black text-[11px] uppercase underline">Edit</button>
+                                    <button onclick="window.showConfirm('삭제', '${p.name} 삭제?', () => window.removePlayer('${teamName}', '${p.id}'))" class="text-red-700 font-black text-[11px] uppercase underline">Del</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex gap-2 bg-slate-100 p-2 rounded-2xl border border-slate-200">
+                        <input type="text" id="input-name-${teamName}" placeholder="Name" class="flex-1 bg-transparent px-2 text-sm font-bold outline-none">
+                        <select id="input-gender-${teamName}" class="bg-white border rounded px-1 text-xs font-black">
+                            <option value="남">M</option>
+                            <option value="여">W</option>
+                        </select>
+                        <button onclick="window.addPlayer('${teamName}')" class="bg-slate-900 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.addPlayer = (teamName) => {
+            const nameInput = document.getElementById(`input-name-${teamName}`);
+            const genderInput = document.getElementById(`input-gender-${teamName}`);
+            const name = nameInput.value.trim();
+            const gender = genderInput.value;
+            if(!name) return;
+            state.teams[teamName].push({ id: 'p_'+Date.now()+Math.random().toString(36).substr(2,4), name, gender });
+            nameInput.value = '';
+            pushState();
+        };
+
+        window.removePlayer = (teamName, pid) => {
+            state.teams[teamName] = state.teams[teamName].filter(p => p.id !== pid);
+            pushState();
+        };
+
+        window.clearTeam = (teamName) => {
+            state.teams[teamName] = [];
+            pushState();
+        };
+
+        window.openEditModal = (teamName, pid) => {
+            const p = state.teams[teamName].find(p => p.id === pid);
+            const modal = document.getElementById('edit-modal');
+            document.getElementById('edit-player-name').value = p.name;
+            document.getElementById('edit-player-gender').value = p.gender;
+            const saveBtn = document.getElementById('edit-save-btn');
+            saveBtn.onclick = () => {
+                p.name = document.getElementById('edit-player-name').value.trim();
+                p.gender = document.getElementById('edit-player-gender').value;
+                pushState();
+                window.closeModal('edit-modal');
+            };
+            modal.classList.add('active');
+        };
+
+        function renderMatchList() {
+            const container = document.getElementById('tab-scoreboard');
+            if (!container || !document.getElementById('tab-scoreboard').classList.contains('active')) return;
+            container.innerHTML = matchesRaw.map((q, i) => {
+                const mA = flatMatches[i*2], mB = flatMatches[i*2+1];
+                const sA = getScore(mA.idx, mA.teams[0], mA.teams[1]), sB = getScore(mB.idx, mB.teams[0], mB.teams[1]);
+                return `
+                <div class="card overflow-hidden border-2 border-slate-100">
+                    <div class="bg-slate-50 px-5 py-3 border-b-2 border-slate-100 flex justify-between items-center font-black text-slate-900 uppercase italic">
+                        <span>${q.q} 매치</span>
+                    </div>
+                    <div class="divide-y-2 divide-slate-50">
+                        ${[mA, mB].map((m, mi) => {
+                            const s = mi === 0 ? sA : sB;
+                            return `
+                            <div class="p-5 hover:bg-slate-50 active:bg-slate-100 cursor-pointer flex items-center justify-between" onclick="window.openMatchModal(${m.idx})">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-xs font-black text-slate-300 italic border-r-2 pr-4 uppercase">Court ${m.court}</span>
+                                    <div class="flex flex-col">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-slate-900">${m.teams[0]}</span>
+                                            <span class="text-[10px] text-slate-200 italic">VS</span>
+                                            <span class="font-bold text-orange-600">${m.teams[1]}</span>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-slate-300 uppercase">${m.court==='A'?'OB':'YB'} Home Game</span>
+                                    </div>
+                                </div>
+                                <div class="font-black text-3xl tracking-tighter text-slate-900">${s.l} : ${s.r}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+            updateTotal();
+        }
+
+        function getScore(mid, tL, tR) {
+            let l=0, r=0;
+            (state.teams[tL]||[]).forEach(p => l += (state.matchScores[mid][p.id]||0)*(p.gender==='여'?1:0.5));
+            (state.teams[tR]||[]).forEach(p => r += (state.matchScores[mid][p.id]||0)*(p.gender==='여'?1:0.5));
+            return { l: l.toFixed(1), r: r.toFixed(1) };
+        }
+
+        function updateTotal() {
+            let ob=0, yb=0;
+            flatMatches.forEach(m => {
+                const s = getScore(m.idx, m.teams[0], m.teams[1]);
+                if (m.teams[0].startsWith('OB')) ob += parseFloat(s.l); else yb += parseFloat(s.l);
+                if (m.teams[1].startsWith('OB')) ob += parseFloat(s.r); else yb += parseFloat(s.r);
+            });
+            document.getElementById('total-ob').innerText = ob.toFixed(1);
+            document.getElementById('total-yb').innerText = yb.toFixed(1);
+        }
+
+        window.openMatchModal = (idx) => {
+            currentMatchIdx = idx;
+            const m = flatMatches.find(f => f.idx === idx);
+            document.getElementById('modal-match-info').innerText = `${m.q} - Court ${m.court}`;
+            document.getElementById('modal-match-title').innerText = `${m.teams[0]} vs ${m.teams[1]}`;
+            document.getElementById('modal-left-team-name').innerText = m.name || m.teams[0];
+            document.getElementById('modal-right-team-name').innerText = m.name || m.teams[1];
+            renderModalPlayers();
+            document.getElementById('scoring-modal').classList.add('active');
+        };
+
+        function renderModalPlayers() {
+            if (currentMatchIdx === null) return;
+            const m = flatMatches.find(f => f.idx === currentMatchIdx);
+            const renderList = (t) => {
+                const ps = state.teams[t] || [];
+                if (!ps.length) return `<p class="text-[10px] text-slate-300 text-center py-6 italic uppercase">No Players</p>`;
+                return ps.map(p => `
+                <div class="flex justify-between items-center bg-white p-3 rounded-2xl border-2 border-slate-50 shadow-sm">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-sm text-slate-800">${p.name}</span>
+                        <span class="text-[9px] font-black ${p.gender==='여'?'text-pink-600':'text-blue-600'} uppercase">x${p.gender==='여'?'1.0':'0.5'}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.goal('${p.id}', -1)" class="w-8 h-8 rounded-full border-2 border-slate-200 text-slate-400 font-black active:bg-slate-100">-</button>
+                        <span class="font-black text-lg w-5 text-center text-slate-900">${state.matchScores[currentMatchIdx][p.id]||0}</span>
+                        <button onclick="window.goal('${p.id}', 1)" class="w-8 h-8 rounded-full bg-slate-900 text-white font-black active:scale-125 transition-transform">+</button>
+                    </div>
+                </div>`).join('');
+            };
+            document.getElementById('modal-left-players').innerHTML = renderList(m.teams[0]);
+            document.getElementById('modal-right-players').innerHTML = renderList(m.teams[1]);
+        }
+
+        window.goal = (pid, d) => {
+            const cur = state.matchScores[currentMatchIdx][pid] || 0;
+            state.matchScores[currentMatchIdx][pid] = Math.max(0, cur + d);
+            pushState();
+        };
+
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.remove('active');
+            if (id === 'scoring-modal') currentMatchIdx = null;
+        };
+
+        window.showConfirm = (title, msg, fn) => {
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            const btn = document.getElementById('confirm-action-btn');
+            btn.onclick = () => { fn(); window.closeModal('confirm-modal'); };
+            modal.classList.add('active');
+        };
+
+        function renderRecords() {
+            const stats = {};
+            Object.keys(state.teams).forEach(t => state.teams[t].forEach(p => stats[p.id] = { name: p.name, gender: p.gender, team: t, goals: 0, pts: 0 }));
+            state.matchScores.forEach((ms, mi) => {
+                for (let pid in ms) {
+                    if (stats[pid]) {
+                        stats[pid].goals += ms[pid];
+                        stats[pid].pts += ms[pid] * (stats[pid].gender === '여' ? 1 : 0.5);
+                    }
+                }
+            });
+            const sorted = Object.values(stats).filter(p => p.goals > 0).sort((a,b) => b.pts - a.pts || b.goals - a.goals);
+            const container = document.getElementById('ranking-container');
+            if (!container) return;
+            if (!sorted.length) { container.innerHTML = `<p class="text-center py-16 text-slate-300 font-bold italic uppercase">No Stats</p>`; return; }
+            container.innerHTML = sorted.map((p, i) => `
+                <div class="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-50">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl font-black italic ${i<3?'text-orange-600':'text-slate-200'}">#${i+1}</span>
+                        <div>
+                            <p class="font-bold text-slate-900 text-sm">${p.name} <span class="text-[10px] text-slate-400 font-normal uppercase italic tracking-tighter">(${p.team})</span></p>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase">${p.gender} | ${p.goals} GOALS</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-black text-slate-900">${p.pts.toFixed(1)}</span>
+                        <span class="text-[10px] font-black text-slate-300 ml-0.5 uppercase">PTS</span>
+                    </div>
+                </div>`).join('');
+        }
+
+        window.copyStatus = () => {
+            const text = `[OTP FC 이벤트 매치 현황]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간: ${window.location.href}`;
+            navigator.clipboard.writeText(text);
+            window.showToast("스코어가 복사되었습니다.");
+        };
+
+        window.resetAllData = () => {
+            state = { teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, matchScores: Array(12).fill({}) };
+            pushState();
+            location.reload();
+        };
+
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast'); t.innerText = msg;
+            t.classList.add('opacity-100');
+            setTimeout(() => t.classList.remove('opacity-100'), 2000);
+        };
+    </script>
+</body>
+</html>
