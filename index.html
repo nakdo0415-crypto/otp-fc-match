@@ -20,6 +20,11 @@
         .sync-offline { background-color: #ef4444; }
         .sync-pending { background-color: #f59e0b; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        /* 팀 태그 커스텀 스타일 (글자색 구분 추가) */
+        .team-tag { padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; display: inline-block; letter-spacing: -0.025em; border: 1px solid transparent; }
+        .ob-tag { background-color: #e2e8f0; color: #1e293b; border-color: #cbd5e1; } /* OB: 연회색 배경 + 진청색 글자 */
+        .yb-tag { background-color: #ffedd5; color: #c2410c; border-color: #fed7aa; } /* YB: 연주황 배경 + 진주황 글자 */
     </style>
 </head>
 <body class="pb-20">
@@ -40,15 +45,15 @@
 
         <!-- Main Score Display -->
         <div class="card p-6 mb-8 text-center border-b-4 border-slate-200">
-            <h2 class="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest italic">Total Standings (M: 0.5 / W: 1.0)</h2>
+            <h2 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest italic">Total Standings (M: 0.5 / W: 1.0)</h2>
             <div class="flex justify-around items-center">
-                <div class="flex flex-col flex-1">
-                    <span class="text-sm font-bold text-slate-500 uppercase tracking-tighter">OB Team</span>
+                <div class="flex flex-col flex-1 items-center">
+                    <span class="team-tag ob-tag mb-2 px-4 py-1.5 text-sm italic">OB TEAM</span>
                     <span id="total-ob" class="text-5xl font-black text-slate-900 tracking-tighter">0.0</span>
                 </div>
                 <div class="text-3xl font-black text-slate-200 mx-2 italic">VS</div>
-                <div class="flex flex-col flex-1">
-                    <span class="text-sm font-bold text-orange-400 uppercase tracking-tighter">YB Team</span>
+                <div class="flex flex-col flex-1 items-center">
+                    <span class="team-tag yb-tag mb-2 px-4 py-1.5 text-sm italic">YB TEAM</span>
                     <span id="total-yb" class="text-5xl font-black text-orange-600 tracking-tighter">0.0</span>
                 </div>
             </div>
@@ -73,7 +78,7 @@
     </div>
 
     <!-- Modals -->
-    <div id="scoring-modal" class="modal"><div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div class="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0"><div><span id="modal-match-info" class="text-[10px] font-bold text-slate-400 uppercase">Match Details</span><h3 id="modal-match-title" class="text-xl font-black italic uppercase tracking-tighter">OB vs YB</h3></div><button onclick="closeModal('scoring-modal')" class="text-2xl">&times;</button></div><div class="p-6 overflow-y-auto"><div class="grid grid-cols-1 sm:grid-cols-2 gap-8"><div><h4 id="modal-left-team-name" class="font-black text-center mb-4 border-b-2 pb-1 text-slate-800 text-sm uppercase italic text-center">Team A</h4><div id="modal-left-players" class="space-y-3"></div></div><div><h4 id="modal-right-team-name" class="font-black text-center mb-4 border-b-2 pb-1 text-orange-600 text-sm uppercase italic text-center">Team B</h4><div id="modal-right-players" class="space-y-3"></div></div></div></div><div class="p-4 bg-slate-50 border-t"><button onclick="closeModal('scoring-modal')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform">DONE</button></div></div></div>
+    <div id="scoring-modal" class="modal"><div class="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div class="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0"><div><span id="modal-match-info" class="text-[10px] font-bold text-slate-400 uppercase">Match Details</span><h3 id="modal-match-title" class="text-xl font-black italic uppercase tracking-tighter">OB vs YB</h3></div><button onclick="closeModal('scoring-modal')" class="text-2xl">&times;</button></div><div class="p-6 overflow-y-auto"><div class="grid grid-cols-1 sm:grid-cols-2 gap-8"><div><h4 id="modal-left-team-container" class="text-center mb-4 border-b-2 pb-3"></h4><div id="modal-left-players" class="space-y-3"></div></div><div><h4 id="modal-right-team-container" class="text-center mb-4 border-b-2 pb-3"></h4><div id="modal-right-players" class="space-y-3"></div></div></div></div><div class="p-4 bg-slate-50 border-t"><button onclick="closeModal('scoring-modal')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black active:scale-95 transition-transform">DONE</button></div></div></div>
     <div id="confirm-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl"><h3 id="confirm-title" class="text-lg font-black text-slate-800 mb-2 font-bold italic uppercase tracking-tighter">Confirm</h3><p id="confirm-msg" class="text-sm text-slate-600 mb-6"></p><div class="flex gap-2"><button onclick="closeModal('confirm-modal')" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm">Cancel</button><button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm">Confirm</button></div></div></div>
     <div id="edit-modal" class="modal"><div class="bg-white w-full max-w-xs rounded-3xl p-6 border-2 border-slate-900 shadow-2xl"><h3 class="text-lg font-black text-slate-800 mb-4 text-center italic uppercase tracking-tighter">Edit Player</h3><div class="space-y-4 mb-6"><div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Name</label><input type="text" id="edit-player-name" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 outline-none font-bold focus:border-slate-900"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Gender</label><select id="edit-player-gender" class="w-full border-2 border-slate-100 rounded-xl px-4 py-2.5 outline-none font-bold bg-white"><option value="남">남성 (0.5pts)</option><option value="여">여성 (1.0pts)</option></select></div></div><div class="flex gap-2"><button onclick="closeModal('edit-modal')" class="flex-1 py-3 bg-slate-100 text-slate-800 rounded-xl font-bold text-sm">Cancel</button><button id="edit-save-btn" class="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm active:scale-95 transition-transform">Save</button></div></div></div>
     <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-3.5 rounded-full font-bold text-xs shadow-2xl opacity-0 transition-opacity pointer-events-none z-[200]">Status</div>
@@ -153,17 +158,23 @@
         };
         window.openMatchModal = (idx) => {
             currentMatchIdx = idx; const m = flatMatches.find(f => f.idx === idx); if (!m) return;
-            document.getElementById('modal-match-info').innerText = `${m.q} - Court ${m.court}`; document.getElementById('modal-match-title').innerText = `${m.teams[0]} vs ${m.teams[1]}`;
-            document.getElementById('modal-left-team-name').innerText = m.teams[0]; document.getElementById('modal-right-team-name').innerText = m.teams[1];
+            document.getElementById('modal-match-info').innerText = `${m.q} - Court ${m.court}`; 
+            document.getElementById('modal-match-title').innerText = `${m.teams[0]} vs ${m.teams[1]}`;
+            
+            const lTag = m.teams[0].startsWith('OB') ? 'ob-tag' : 'yb-tag';
+            const rTag = m.teams[1].startsWith('OB') ? 'ob-tag' : 'yb-tag';
+            
+            document.getElementById('modal-left-team-container').innerHTML = `<span class="team-tag ${lTag}">${m.teams[0]}</span>`;
+            document.getElementById('modal-right-team-container').innerHTML = `<span class="team-tag ${rTag}">${m.teams[1]}</span>`;
+
             renderModalPlayers(); document.getElementById('scoring-modal').classList.add('active');
         };
         window.goal = (pid, d) => { if (currentMatchIdx === null) return; state.matchScores[currentMatchIdx][pid] = Math.max(0, (state.matchScores[currentMatchIdx][pid] || 0) + d); pushState(); };
         window.closeModal = (id) => { document.getElementById(id).classList.remove('active'); if (id === 'scoring-modal') currentMatchIdx = null; };
         window.showConfirm = (title, msg, fn) => { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-msg').innerText = msg; document.getElementById('confirm-action-btn').onclick = () => { fn(); window.closeModal('confirm-modal'); }; document.getElementById('confirm-modal').classList.add('active'); };
         window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('opacity-100'); setTimeout(() => t.classList.remove('opacity-100'), 2500); };
-        window.copyStatus = () => { const text = `[OTP FC LIVE 스코어]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간: ${window.location.href}`; const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); window.showToast("현황판 스코어가 복사되었습니다."); };
+        window.copyStatus = () => { const text = `[OTP FC LIVE 스코어]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간 확인: ${window.location.href}`; const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); window.showToast("현황판 스코어가 복사되었습니다."); };
         
-        // --- 득점 기록만 초기화하는 함수 ---
         window.resetScoresOnly = () => { 
             state.matchScores = Array(12).fill(null).map(() => ({})); 
             pushState(); 
@@ -175,10 +186,12 @@
         
         function renderTeamManagement() {
             const container = document.getElementById('team-manage-container'); if (!container) return;
-            container.innerHTML = Object.keys(state.teams).map(t => `
-                <div class="card p-4 border border-slate-100 mb-2 overflow-hidden">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-black text-xl ${t.startsWith('OB')?'text-slate-900':'text-orange-600'} uppercase italic tracking-tighter">${t} 명단</h3>
+            container.innerHTML = Object.keys(state.teams).map(t => {
+                const tagClass = t.startsWith('OB') ? 'ob-tag' : 'yb-tag';
+                return `
+                <div class="card p-5 border border-slate-100 mb-2 overflow-hidden">
+                    <div class="flex justify-between items-center mb-5">
+                        <span class="team-tag ${tagClass} text-base px-3 py-1">${t} 명단</span>
                         <button onclick="window.showConfirm('${t} 초기화','이 팀의 명단을 비울까요?',()=>window.clearTeam('${t}'))" class="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded-lg">Clear</button>
                     </div>
                     <div class="space-y-2 mb-4">
@@ -210,8 +223,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function renderMatchList() {
@@ -222,17 +235,21 @@
                         <span>${q.q} 매치</span>
                     </div>
                     <div class="divide-y-2 divide-slate-50">
-                        ${[flatMatches[i*2], flatMatches[i*2+1]].map(m=>{const s=getScore(m.idx,m.teams[0],m.teams[1]);return `
+                        ${[flatMatches[i*2], flatMatches[i*2+1]].map(m=>{
+                            const s=getScore(m.idx,m.teams[0],m.teams[1]);
+                            const lTag = m.teams[0].startsWith('OB') ? 'ob-tag' : 'yb-tag';
+                            const rTag = m.teams[1].startsWith('OB') ? 'ob-tag' : 'yb-tag';
+                            return `
                             <div class="p-5 hover:bg-slate-50 active:bg-slate-100 cursor-pointer flex items-center justify-between transition-colors" onclick="window.openMatchModal(${m.idx})">
-                                <div class="flex items-center gap-4">
-                                    <span class="text-xs font-black text-slate-300 italic border-r-2 pr-4 uppercase">C-${m.court}</span>
-                                    <div class="flex flex-col">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold text-slate-900">${m.teams[0]}</span>
-                                            <span class="text-[10px] text-slate-200 italic font-black">VS</span>
-                                            <span class="font-bold text-orange-500">${m.teams[1]}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-[10px] font-black text-slate-300 italic border-r-2 pr-3 uppercase">C-${m.court}</span>
+                                    <div class="flex flex-col gap-1.5">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="team-tag ${lTag} !text-[10px] !px-1.5 !py-0.5">${m.teams[0]}</span>
+                                            <span class="text-[9px] font-black text-slate-200 uppercase tracking-tighter">vs</span>
+                                            <span class="team-tag ${rTag} !text-[10px] !px-1.5 !py-0.5">${m.teams[1]}</span>
                                         </div>
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${m.court==='A'?'OB':'YB'} HOME</span>
+                                        <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">${m.court==='A'?'OB':'YB'} HOME</span>
                                     </div>
                                 </div>
                                 <div class="font-black text-3xl tracking-tighter text-slate-900">${s.l} : ${s.r}</div>
@@ -261,7 +278,7 @@
                         <span class="text-[9px] font-black ${p.gender==='여'?'text-pink-600':'text-blue-600'} uppercase tracking-widest">x${p.gender==='여'?'1.0':'0.5'}</span>
                     </div>
                     <div class="flex items-center gap-4">
-                        <button onclick="window.goal('${p.id}',-1)" class="w-10 h-10 rounded-full border-2 border-slate-100 text-slate-400 font-black active:bg-slate-100">-</button>
+                        <button onclick="window.goal('${p.id}',-1)" class="w-10 h-10 rounded-full border-2 border-slate-200 text-slate-400 font-black active:bg-slate-100">-</button>
                         <span class="font-black text-xl w-6 text-center text-slate-900">${state.matchScores[currentMatchIdx][p.id]||0}</span>
                         <button onclick="window.goal('${p.id}',1)" class="w-10 h-10 rounded-full bg-slate-900 text-white font-black active:scale-125 transition-transform shadow-md">+</button>
                     </div>
@@ -274,12 +291,16 @@
             state.matchScores.forEach(ms=>{for(let pid in ms){if(stats[pid]){stats[pid].goals+=ms[pid]; stats[pid].pts+=ms[pid]*(stats[pid].gender==='여'?1:0.5);}}});
             const srt = Object.values(stats).filter(p=>p.goals>0).sort((a,b)=>b.pts-a.pts||b.goals-a.goals);
             const container = document.getElementById('ranking-container'); if(!container) return; if(!srt.length){container.innerHTML=`<p class="text-center py-20 text-slate-300 font-bold italic uppercase tracking-widest border-2 border-dashed border-slate-50 rounded-3xl">No Data</p>`; return;}
-            container.innerHTML = srt.map((p,i)=>`
+            container.innerHTML = srt.map((p,i)=> {
+                const tagClass = p.team.startsWith('OB') ? 'ob-tag' : 'yb-tag';
+                return `
                 <div class="flex items-center justify-between p-5 bg-white rounded-3xl border-2 border-slate-50 shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex items-center gap-4">
                         <span class="text-2xl font-black italic ${i<3?'text-orange-500':'text-slate-200'}">#${i+1}</span>
                         <div>
-                            <p class="font-bold text-slate-900 text-sm">${p.name} <span class="text-[10px] text-slate-400 font-normal uppercase tracking-tighter">(${p.team})</span></p>
+                            <p class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                ${p.name} <span class="team-tag ${tagClass} !text-[8px] !px-1.5 !py-0 !rounded-md">${p.team}</span>
+                            </p>
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${p.gender} | ${p.goals} GOALS</p>
                         </div>
                     </div>
@@ -287,7 +308,8 @@
                         <span class="text-2xl font-black text-slate-900 tracking-tighter">${p.pts.toFixed(1)}</span>
                         <span class="text-[10px] font-black text-slate-300 ml-0.5 uppercase">PTS</span>
                     </div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
 
         // --- Sync ---
