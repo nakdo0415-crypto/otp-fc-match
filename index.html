@@ -83,7 +83,13 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } catch (e) {
+            console.error("Firebase config parsing error", e);
+        }
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -104,12 +110,31 @@
             flatMatches.push({ q: m.q, court: 'B', teams: m.b, idx: i * 2 + 1 });
         });
 
-        let state = { teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, matchScores: Array(12).fill({}) };
+        // Initialize state with separate objects for each match score
+        let state = { 
+            teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, 
+            matchScores: Array(12).fill(null).map(() => ({})) 
+        };
         let currentMatchIdx = null;
         let user = null;
 
-        // Path to public shared data
+        // Path to public shared data (6 segments)
         const stateDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'gameState', 'current');
+
+        // Global functions (exposed to window for onclick)
+        window.switchTab = (tab) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
+                b.classList.add('bg-white', 'text-slate-600');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            const targetBtn = document.getElementById(`btn-${tab}`);
+            targetBtn.classList.replace('bg-white', 'bg-slate-800');
+            targetBtn.classList.replace('text-slate-600', 'text-white');
+            targetBtn.classList.add('shadow-md');
+            renderAll();
+        };
 
         // Init Auth
         const initAuth = async () => {
@@ -119,7 +144,10 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (e) { console.error("Auth failed", e); }
+            } catch (e) { 
+                console.error("Auth failed", e);
+                window.showToast("접속 오류가 발생했습니다.");
+            }
         };
         initAuth();
 
@@ -137,11 +165,11 @@
             onSnapshot(stateDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     state = docSnap.data();
-                    renderAll();
                 } else {
                     // Initial setup if doc doesn't exist
                     setDoc(stateDocRef, state);
                 }
+                renderAll();
             }, (error) => {
                 console.error("Sync Error", error);
                 document.getElementById('sync-status').className = 'sync-indicator sync-offline';
@@ -151,23 +179,13 @@
 
         async function pushState() {
             if (!user) return;
-            try { await setDoc(stateDocRef, state); } catch(e) { console.error("Push Error", e); }
+            try { 
+                await setDoc(stateDocRef, state); 
+            } catch(e) { 
+                console.error("Push Error", e); 
+                window.showToast("저장 중 오류가 발생했습니다.");
+            }
         }
-
-        // Global functions (exposed to window for onclick)
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('bg-slate-800', 'text-white', 'shadow-md');
-                b.classList.add('bg-white', 'text-slate-600');
-            });
-            document.getElementById(`tab-${tab}`).classList.add('active');
-            const targetBtn = document.getElementById(`btn-${tab}`);
-            targetBtn.classList.replace('bg-white', 'bg-slate-800');
-            targetBtn.classList.replace('text-slate-600', 'text-white');
-            targetBtn.classList.add('shadow-md');
-            renderAll();
-        };
 
         function renderAll() {
             renderMatchList();
@@ -232,6 +250,7 @@
 
         window.openEditModal = (teamName, pid) => {
             const p = state.teams[teamName].find(p => p.id === pid);
+            if (!p) return;
             const modal = document.getElementById('edit-modal');
             document.getElementById('edit-player-name').value = p.name;
             document.getElementById('edit-player-gender').value = p.gender;
@@ -302,10 +321,11 @@
         window.openMatchModal = (idx) => {
             currentMatchIdx = idx;
             const m = flatMatches.find(f => f.idx === idx);
+            if (!m) return;
             document.getElementById('modal-match-info').innerText = `${m.q} - Court ${m.court}`;
             document.getElementById('modal-match-title').innerText = `${m.teams[0]} vs ${m.teams[1]}`;
-            document.getElementById('modal-left-team-name').innerText = m.name || m.teams[0];
-            document.getElementById('modal-right-team-name').innerText = m.name || m.teams[1];
+            document.getElementById('modal-left-team-name').innerText = m.teams[0];
+            document.getElementById('modal-right-team-name').innerText = m.teams[1];
             renderModalPlayers();
             document.getElementById('scoring-modal').classList.add('active');
         };
@@ -313,6 +333,7 @@
         function renderModalPlayers() {
             if (currentMatchIdx === null) return;
             const m = flatMatches.find(f => f.idx === currentMatchIdx);
+            if (!m) return;
             const renderList = (t) => {
                 const ps = state.teams[t] || [];
                 if (!ps.length) return `<p class="text-[10px] text-slate-300 text-center py-6 italic uppercase">No Players</p>`;
@@ -334,6 +355,7 @@
         }
 
         window.goal = (pid, d) => {
+            if (currentMatchIdx === null) return;
             const cur = state.matchScores[currentMatchIdx][pid] || 0;
             state.matchScores[currentMatchIdx][pid] = Math.max(0, cur + d);
             pushState();
@@ -356,7 +378,7 @@
         function renderRecords() {
             const stats = {};
             Object.keys(state.teams).forEach(t => state.teams[t].forEach(p => stats[p.id] = { name: p.name, gender: p.gender, team: t, goals: 0, pts: 0 }));
-            state.matchScores.forEach((ms, mi) => {
+            state.matchScores.forEach((ms) => {
                 for (let pid in ms) {
                     if (stats[pid]) {
                         stats[pid].goals += ms[pid];
@@ -391,16 +413,23 @@
         };
 
         window.resetAllData = () => {
-            state = { teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, matchScores: Array(12).fill({}) };
+            state = { 
+                teams: { "OB-1": [], "OB-2": [], "YB-1": [], "YB-2": [] }, 
+                matchScores: Array(12).fill(null).map(() => ({})) 
+            };
             pushState();
-            location.reload();
         };
 
         window.showToast = (msg) => {
-            const t = document.getElementById('toast'); t.innerText = msg;
+            const t = document.getElementById('toast'); 
+            if (!t) return;
+            t.innerText = msg;
             t.classList.add('opacity-100');
             setTimeout(() => t.classList.remove('opacity-100'), 2000);
         };
+
+        // Initial empty render
+        renderAll();
     </script>
 </body>
 </html>
