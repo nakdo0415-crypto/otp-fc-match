@@ -68,7 +68,7 @@
 
         <div class="mt-8 flex gap-3">
             <button onclick="copyStatus()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform text-sm uppercase tracking-tighter">현황 복사</button>
-            <button onclick="showConfirm('전체 초기화', '데이터가 모두 삭제됩니다. 계속할까요?', resetAllData)" class="px-6 bg-red-100 text-red-700 py-4 rounded-2xl font-bold border border-red-200 active:scale-95 transition-transform text-sm uppercase tracking-tighter">초기화</button>
+            <button onclick="showConfirm('스코어 초기화', '명단은 유지하고 득점 기록만 모두 삭제하시겠습니까?', resetScoresOnly)" class="px-6 bg-red-100 text-red-700 py-4 rounded-2xl font-bold border border-red-200 active:scale-95 transition-transform text-sm uppercase tracking-tighter">초기화</button>
         </div>
     </div>
 
@@ -162,7 +162,13 @@
         window.showConfirm = (title, msg, fn) => { document.getElementById('confirm-title').innerText = title; document.getElementById('confirm-msg').innerText = msg; document.getElementById('confirm-action-btn').onclick = () => { fn(); window.closeModal('confirm-modal'); }; document.getElementById('confirm-modal').classList.add('active'); };
         window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('opacity-100'); setTimeout(() => t.classList.remove('opacity-100'), 2500); };
         window.copyStatus = () => { const text = `[OTP FC LIVE 스코어]\nOB ${document.getElementById('total-ob').innerText} : ${document.getElementById('total-yb').innerText} YB\n실시간: ${window.location.href}`; const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); window.showToast("현황판 스코어가 복사되었습니다."); };
-        window.resetAllData = () => { state = { teams:{"OB-1":[],"OB-2":[],"YB-1":[],"YB-2":[]}, matchScores:Array(12).fill(null).map(()=>({})) }; pushState(); };
+        
+        // --- 득점 기록만 초기화하는 함수 ---
+        window.resetScoresOnly = () => { 
+            state.matchScores = Array(12).fill(null).map(() => ({})); 
+            pushState(); 
+            window.showToast("득점 기록이 초기화되었습니다.");
+        };
 
         // --- Render ---
         function renderAll() { renderMatchList(); renderTeamManagement(); renderRecords(); if (currentMatchIdx !== null) renderModalPlayers(); }
